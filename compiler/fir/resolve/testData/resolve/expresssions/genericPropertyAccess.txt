@@ -7,9 +7,7 @@ FILE: genericPropertyAccess.kt
         public final val x: R|T| = R|<local>/x|
             public get(): R|T|
 
-        public abstract fun foo(): R|T| {
-            ^foo this@R|/Base|.R|/Base.x|
-        }
+        public abstract fun foo(): R|T|
 
     }
     public final class Derived<T> : R|Base<T>| {
