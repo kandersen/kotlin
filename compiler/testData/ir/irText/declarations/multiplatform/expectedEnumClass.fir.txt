@@ -69,10 +69,14 @@ FILE fqName:<root> fileName:/expectedEnumClass.kt
     PROPERTY FAKE_OVERRIDE name:name visibility:public modality:FINAL [val]
       FUN FAKE_OVERRIDE name:<get-name> visibility:public modality:FINAL <> ($this:<root>.MyEnum) returnType:kotlin.String
         correspondingProperty: PROPERTY FAKE_OVERRIDE name:name visibility:public modality:FINAL [val]
+        overridden:
+          public final fun <get-name> (): kotlin.String declared in kotlin.Enum
         $this: VALUE_PARAMETER name:<this> type:<root>.MyEnum
     PROPERTY FAKE_OVERRIDE name:ordinal visibility:public modality:FINAL [val]
       FUN FAKE_OVERRIDE name:<get-ordinal> visibility:public modality:FINAL <> ($this:<root>.MyEnum) returnType:kotlin.Int
         correspondingProperty: PROPERTY FAKE_OVERRIDE name:ordinal visibility:public modality:FINAL [val]
+        overridden:
+          public final fun <get-ordinal> (): kotlin.Int declared in kotlin.Enum
         $this: VALUE_PARAMETER name:<this> type:<root>.MyEnum
   CLASS ENUM_CLASS name:MyEnum modality:FINAL visibility:public superTypes:[kotlin.Enum]
     $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:<root>.MyEnum
@@ -163,8 +167,12 @@ FILE fqName:<root> fileName:/expectedEnumClass.kt
     PROPERTY FAKE_OVERRIDE name:name visibility:public modality:FINAL [val]
       FUN FAKE_OVERRIDE name:<get-name> visibility:public modality:FINAL <> ($this:<root>.MyEnum) returnType:kotlin.String
         correspondingProperty: PROPERTY FAKE_OVERRIDE name:name visibility:public modality:FINAL [val]
+        overridden:
+          public final fun <get-name> (): kotlin.String declared in kotlin.Enum
         $this: VALUE_PARAMETER name:<this> type:<root>.MyEnum
     PROPERTY FAKE_OVERRIDE name:ordinal visibility:public modality:FINAL [val]
       FUN FAKE_OVERRIDE name:<get-ordinal> visibility:public modality:FINAL <> ($this:<root>.MyEnum) returnType:kotlin.Int
         correspondingProperty: PROPERTY FAKE_OVERRIDE name:ordinal visibility:public modality:FINAL [val]
+        overridden:
+          public final fun <get-ordinal> (): kotlin.Int declared in kotlin.Enum
         $this: VALUE_PARAMETER name:<this> type:<root>.MyEnum

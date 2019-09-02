@@ -238,7 +238,7 @@ internal class Fir2IrVisitor(
                     if (propertySymbol.isFakeOverride) {
                         // Substitution case
                         val irProperty = declarationStorage.getIrProperty(
-                            originalProperty, origin = origin
+                            originalProperty, declarationStorage.findIrParent(originalProperty), origin = origin
                         )
                         val baseSymbol = propertySymbol.overriddenSymbol
                         declarations += irProperty.setParentByParentStack().withProperty {
@@ -250,7 +250,7 @@ internal class Fir2IrVisitor(
                         val fakeOverrideProperty = fakeOverrideSymbol.fir
 
                         val irProperty = declarationStorage.getIrProperty(
-                            fakeOverrideProperty, origin = origin
+                            fakeOverrideProperty, declarationStorage.findIrParent(originalProperty), origin = origin
                         )
                         declarations += irProperty.setParentByParentStack().withProperty {
                             setPropertyContent(irProperty.descriptor, fakeOverrideProperty, firOverriddenSymbol = propertySymbol)
@@ -582,7 +582,7 @@ internal class Fir2IrVisitor(
     }
 
     override fun visitProperty(property: FirProperty, data: Any?): IrProperty {
-        val irProperty = declarationStorage.getIrProperty(property)
+        val irProperty = declarationStorage.getIrProperty(property, irParent = parentStack.last() as? IrClass)
         return irProperty.setParentByParentStack().withProperty { setPropertyContent(irProperty.descriptor, property) }
     }
 
@@ -627,7 +627,7 @@ internal class Fir2IrVisitor(
                 descriptor.bind(this)
                 declarationStorage.enterScope(descriptor)
                 if (!isDefault && !isFakeOverride) {
-                    with(declarationStorage) { declareParameters(propertyAccessor!!, containingClass = null) }
+                    with(declarationStorage) { declareParameters(propertyAccessor!!, containingClass = null, isStatic = false) }
                 }
                 setFunctionContent(descriptor, propertyAccessor)
                 apply {
