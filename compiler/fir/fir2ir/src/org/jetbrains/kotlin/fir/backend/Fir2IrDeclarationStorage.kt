@@ -382,11 +382,10 @@ class Fir2IrDeclarationStorage(
         }
     }
 
-    fun getIrProperty(property: FirProperty): IrProperty {
+    fun getIrProperty(property: FirProperty, origin: IrDeclarationOrigin = IrDeclarationOrigin.DEFINED): IrProperty {
         return propertyCache.getOrPut(property) {
             val containerSource = property.containerSource
             val descriptor = containerSource?.let { WrappedPropertyDescriptorWithContainerSource(it) } ?: WrappedPropertyDescriptor()
-            val origin = IrDeclarationOrigin.DEFINED
             property.convertWithOffsets { startOffset, endOffset ->
                 irSymbolTable.declareProperty(
                     startOffset, endOffset,
