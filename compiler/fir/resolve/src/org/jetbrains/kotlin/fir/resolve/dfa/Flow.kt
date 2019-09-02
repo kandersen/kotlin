@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.fir.resolve.dfa
 import com.google.common.collect.HashMultimap
 
 class Flow(
+    // change type to RealDataFlowVariable
     val approvedFacts: MutableMap<DataFlowVariable, FirDataFlowInfo> = mutableMapOf(),
     val notApprovedFacts: HashMultimap<DataFlowVariable, UnapprovedFirDataFlowInfo> = HashMultimap.create(),
     private var state: State = State.Building

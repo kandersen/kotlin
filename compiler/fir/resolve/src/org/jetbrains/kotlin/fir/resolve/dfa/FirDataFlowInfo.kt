@@ -8,8 +8,10 @@ package org.jetbrains.kotlin.fir.resolve.dfa
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.render
 
+// rename to ConditionalFirDataFlowInfo
 data class UnapprovedFirDataFlowInfo(
     val condition: Condition,
+    // change type to RealDataFlowInfo
     val variable: DataFlowVariable,
     val info: FirDataFlowInfo
 ) {
