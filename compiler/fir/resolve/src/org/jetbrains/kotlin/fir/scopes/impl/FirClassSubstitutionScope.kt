@@ -20,7 +20,6 @@ import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirResolvedTypeRef
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.types.coneTypeUnsafe
-import org.jetbrains.kotlin.fir.types.impl.FirImplicitUnitTypeRef
 import org.jetbrains.kotlin.fir.types.impl.FirResolvedTypeRefImpl
 import org.jetbrains.kotlin.name.Name
 
@@ -148,50 +147,10 @@ class FirClassSubstitutionScope(
                     psi, symbol, name,
                     baseProperty.receiverTypeRef?.withReplacedConeType(newReceiverType),
                     baseProperty.returnTypeRef.withReplacedConeType(newReturnType),
-                    isVar, initializer, delegate
+                    isVar, initializer = null, delegate = null
                 ).apply {
                     resolvePhase = baseProperty.resolvePhase
                     status = baseProperty.status as FirDeclarationStatusImpl
-                    with(baseProperty.getter) {
-                        if (this is FirDefaultPropertyGetter) {
-                            getter = FirDefaultPropertyGetter(
-                                session, psi,
-                                returnTypeRef.withReplacedConeTypeIfResolved(newReturnType),
-                                visibility
-                            )
-                        } else if (this is FirPropertyAccessorImpl) {
-                            val accessorSymbol = FirPropertyAccessorSymbol()
-                            getter = FirPropertyAccessorImpl(
-                                session, psi, isGetter, visibility,
-                                returnTypeRef.withReplacedConeTypeIfResolved(newReturnType),
-                                accessorSymbol
-                            )
-                        }
-                    }
-                    with(baseProperty.setter) {
-                        if (this is FirDefaultPropertySetter) {
-                            setter = FirDefaultPropertySetter(
-                                session, psi,
-                                valueParameters.first().returnTypeRef.withReplacedConeTypeIfResolved(newReturnType),
-                                visibility
-                            )
-                        } else if (this is FirPropertyAccessorImpl) {
-                            val accessorSymbol = FirPropertyAccessorSymbol()
-                            setter = FirPropertyAccessorImpl(
-                                session, psi, isGetter, visibility,
-                                FirImplicitUnitTypeRef(null),
-                                accessorSymbol
-                            ).apply {
-                                with(baseProperty.setter!!.valueParameters.first()) {
-                                    valueParameters += FirValueParameterImpl(
-                                        session, psi, name,
-                                        returnTypeRef.withReplacedConeTypeIfResolved(newReturnType),
-                                        defaultValue, isCrossinline, isNoinline, isVararg
-                                    )
-                                }
-                            }
-                        }
-                    }
                 }
             }
             return symbol
@@ -206,9 +165,4 @@ fun FirTypeRef.withReplacedConeType(newType: ConeKotlinType?): FirResolvedTypeRe
 
     return FirResolvedTypeRefImpl(psi, newType, annotations = annotations)
 
-}
-
-fun FirTypeRef.withReplacedConeTypeIfResolved(newType: ConeKotlinType?): FirTypeRef {
-    if (this !is FirResolvedTypeRef || newType == null) return this
-    return FirResolvedTypeRefImpl(psi, newType, annotations = annotations)
 }
