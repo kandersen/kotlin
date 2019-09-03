@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.fir.backend
 
-import org.jetbrains.kotlin.backend.common.descriptors.WrappedSimpleFunctionDescriptor
 import org.jetbrains.kotlin.backend.common.descriptors.WrappedValueParameterDescriptor
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.fir.*
@@ -35,7 +34,6 @@ import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.IrFieldImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrFileImpl
-import org.jetbrains.kotlin.ir.declarations.impl.IrFunctionImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrValueParameterImpl
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.expressions.*
@@ -530,6 +528,7 @@ internal class Fir2IrVisitor(
         val irParent = this.parent
         val propertyType = property.returnTypeRef.toIrType(session, declarationStorage)
         // TODO: this checks are very preliminary, FIR resolve should determine backing field presence itself
+        // TODO (2): backing field should be created inside declaration storage
         if (property.modality != Modality.ABSTRACT && (irParent !is IrClass || !irParent.isInterface)) {
             if (initializer != null || property.getter is FirDefaultPropertyGetter ||
                 property.isVar && property.setter is FirDefaultPropertySetter
@@ -553,27 +552,19 @@ internal class Fir2IrVisitor(
             }
         }
         val overriddenProperty = firOverriddenSymbol?.let { declarationStorage.getIrPropertyOrFieldSymbol(it) } as? IrPropertySymbol
-        getter = property.getter?.let { convertPropertyAccessor(it, propertyType, delegate != null) }
-            ?: firOverriddenSymbol?.let {
-                createPropertyAccessor(
-                    null, startOffset, endOffset, this, propertyType,
-                    visibility = it.fir.getter?.visibility ?: it.fir.visibility,
-                    isSetter = false, isFakeOverride = true
-                ).apply {
-                    overriddenProperty?.owner?.getter?.symbol?.let { overriddenSymbols += it }
-                }
-            }
+        getter?.setPropertyAccessorContent(
+            property.getter, this, propertyType, property.getter is FirDefaultPropertyGetter, property.getter == null
+        )
+        getter?.apply {
+            overriddenProperty?.owner?.getter?.symbol?.let { overriddenSymbols += it }
+        }
         if (property.isVar) {
-            setter = property.setter?.let { convertPropertyAccessor(it, propertyType, delegate != null) }
-                ?: firOverriddenSymbol?.let {
-                    createPropertyAccessor(
-                        null, startOffset, endOffset, this, propertyType,
-                        visibility = it.fir.getter?.visibility ?: it.fir.visibility,
-                        isSetter = true, isFakeOverride = true
-                    ).apply {
-                        overriddenProperty?.owner?.setter?.symbol?.let { overriddenSymbols += it }
-                    }
-                }
+            setter?.setPropertyAccessorContent(
+                property.setter, this, propertyType, property.setter is FirDefaultPropertySetter, property.setter == null
+            )
+            setter?.apply {
+                overriddenProperty?.owner?.setter?.symbol?.let { overriddenSymbols += it }
+            }
         }
         property.annotations.forEach {
             annotations += it.accept(this@Fir2IrVisitor, null) as IrConstructorCall
@@ -596,96 +587,50 @@ internal class Fir2IrVisitor(
         return this
     }
 
-
-    private fun createPropertyAccessor(
-        // NB: null is allowed only when isFakeOverride is true (or isDefault is true)
+    private fun IrFunction.setPropertyAccessorContent(
         propertyAccessor: FirPropertyAccessor?,
-        startOffset: Int, endOffset: Int,
-        correspondingProperty: IrProperty, propertyType: IrType,
-        visibility: Visibility = propertyAccessor?.visibility ?: correspondingProperty.visibility,
-        isSetter: Boolean = propertyAccessor?.isSetter == true,
-        isDefault: Boolean = false, hasDelegate: Boolean = false, isFakeOverride: Boolean = false
-    ): IrSimpleFunction {
-        val origin = when {
-            isFakeOverride -> IrDeclarationOrigin.FAKE_OVERRIDE
-            isDefault -> IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR
-            hasDelegate -> IrDeclarationOrigin.DELEGATED_PROPERTY_ACCESSOR
-            else -> IrDeclarationOrigin.DEFINED
-        }
-        val prefix = if (isSetter) "set" else "get"
-        val descriptor = WrappedSimpleFunctionDescriptor()
-        return symbolTable.declareSimpleFunction(
-            startOffset, endOffset, origin, descriptor
-        ) { symbol ->
-            val accessorReturnType = if (isSetter) unitType else propertyType
-            IrFunctionImpl(
-                startOffset, endOffset, origin, symbol,
-                Name.special("<$prefix-${correspondingProperty.name}>"),
-                visibility, correspondingProperty.modality, accessorReturnType,
-                isInline = false, isExternal = false, isTailrec = false, isSuspend = false
-            ).withFunction {
-                descriptor.bind(this)
+        correspondingProperty: IrProperty,
+        propertyType: IrType,
+        isDefault: Boolean,
+        isFakeOverride: Boolean
+    ) {
+        withFunction {
+            if (propertyAccessor != null) {
+                with(declarationStorage) { this@setPropertyAccessorContent.enterLocalScope(propertyAccessor) }
+            } else {
                 declarationStorage.enterScope(descriptor)
-                if (!isDefault && !isFakeOverride) {
-                    with(declarationStorage) { declareParameters(propertyAccessor!!, containingClass = null, isStatic = false) }
-                }
-                setFunctionContent(descriptor, propertyAccessor)
-                apply {
-                    correspondingPropertySymbol = symbolTable.referenceProperty(correspondingProperty.descriptor)
-                    if (isDefault || isFakeOverride) {
-                        withParent {
-                            declarationStorage.enterScope(descriptor)
-                            val backingField = correspondingProperty.backingField
-                            if (isSetter) {
-                                valueParameters += symbolTable.declareValueParameter(
-                                    startOffset, endOffset, origin, WrappedValueParameterDescriptor(), propertyType
-                                ) { symbol ->
-                                    IrValueParameterImpl(
-                                        startOffset, endOffset, IrDeclarationOrigin.DEFINED, symbol,
-                                        Name.special("<set-?>"), 0, propertyType,
-                                        varargElementType = null,
-                                        isCrossinline = false, isNoinline = false
-                                    ).setParentByParentStack()
-                                }
-                            }
-                            val fieldSymbol = symbolTable.referenceField(correspondingProperty.descriptor)
-                            val declaration = this
-                            if (!isFakeOverride && backingField != null) {
-                                body = IrBlockBodyImpl(
-                                    startOffset, endOffset,
-                                    listOf(
-                                        if (isSetter) {
-                                            IrSetFieldImpl(startOffset, endOffset, fieldSymbol, accessorReturnType).apply {
-                                                setReceiver(declaration)
-                                                value = IrGetValueImpl(startOffset, endOffset, propertyType, valueParameters.first().symbol)
-                                            }
-                                        } else {
-                                            IrReturnImpl(
-                                                startOffset, endOffset, nothingType, symbol,
-                                                IrGetFieldImpl(startOffset, endOffset, fieldSymbol, propertyType).setReceiver(declaration)
-                                            )
-                                        }
+            }
+            setFunctionContent(descriptor, propertyAccessor)
+            if (isDefault || isFakeOverride) {
+                withParent {
+                    declarationStorage.enterScope(descriptor)
+                    val backingField = correspondingProperty.backingField
+                    val fieldSymbol = symbolTable.referenceField(correspondingProperty.descriptor)
+                    val declaration = this
+                    if (!isFakeOverride && backingField != null) {
+                        body = IrBlockBodyImpl(
+                            startOffset, endOffset,
+                            listOf(
+                                if (isSetter) {
+                                    IrSetFieldImpl(startOffset, endOffset, fieldSymbol, unitType).apply {
+                                        setReceiver(declaration)
+                                        value = IrGetValueImpl(startOffset, endOffset, propertyType, valueParameters.first().symbol)
+                                    }
+                                } else {
+                                    IrReturnImpl(
+                                        startOffset, endOffset, nothingType, symbol,
+                                        IrGetFieldImpl(startOffset, endOffset, fieldSymbol, propertyType).setReceiver(declaration)
                                     )
-                                )
-                            }
-                            declarationStorage.leaveScope(descriptor)
-                        }
+                                }
+                            )
+                        )
                     }
+                    declarationStorage.leaveScope(descriptor)
                 }
             }
         }
     }
 
-    private fun convertPropertyAccessor(propertyAccessor: FirPropertyAccessor, type: IrType, hasDelegate: Boolean): IrSimpleFunction {
-        val correspondingProperty = propertyStack.last()
-        return propertyAccessor.convertWithOffsets { startOffset, endOffset ->
-            createPropertyAccessor(
-                propertyAccessor, startOffset, endOffset, correspondingProperty, propertyType = type,
-                isDefault = propertyAccessor is FirDefaultPropertyGetter || propertyAccessor is FirDefaultPropertySetter,
-                hasDelegate = hasDelegate
-            )
-        }
-    }
 
     override fun visitReturnExpression(returnExpression: FirReturnExpression, data: Any?): IrElement {
         val firTarget = returnExpression.target.labeledElement

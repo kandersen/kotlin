@@ -11,6 +11,8 @@ import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.*
+import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyGetter
+import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertySetter
 import org.jetbrains.kotlin.fir.descriptors.FirModuleDescriptor
 import org.jetbrains.kotlin.fir.descriptors.FirPackageFragmentDescriptor
 import org.jetbrains.kotlin.fir.expressions.FirVariable
@@ -233,9 +235,27 @@ class Fir2IrDeclarationStorage(
         }
     }
 
-    fun <T : IrFunction> T.declareParameters(function: FirFunction<*>?, containingClass: IrClass?, isStatic: Boolean) {
+    private fun <T : IrFunction> T.declareDefaultSetterParameter(type: IrType): T {
         val parent = this
-        if (function != null) {
+        valueParameters += irSymbolTable.declareValueParameter(
+            startOffset, endOffset, origin, WrappedValueParameterDescriptor(), type
+        ) { symbol ->
+            IrValueParameterImpl(
+                startOffset, endOffset, IrDeclarationOrigin.DEFINED, symbol,
+                Name.special("<set-?>"), 0, type,
+                varargElementType = null,
+                isCrossinline = false, isNoinline = false
+            ).apply { this.parent = parent }
+        }
+        return this
+    }
+
+    private fun <T : IrFunction> T.declareParameters(function: FirFunction<*>?, containingClass: IrClass?, isStatic: Boolean) {
+        val parent = this
+        if (function is FirDefaultPropertySetter) {
+            val type = function.valueParameters.first().returnTypeRef.toIrType(session, this@Fir2IrDeclarationStorage)
+            declareDefaultSetterParameter(type)
+        } else if (function != null) {
             for ((index, valueParameter) in function.valueParameters.withIndex()) {
                 valueParameters += createAndSaveIrParameter(valueParameter, index).apply { this.parent = parent }
             }
@@ -296,7 +316,7 @@ class Fir2IrDeclarationStorage(
         return this
     }
 
-    private fun <T : IrFunction> T.enterLocalScope(function: FirFunction<*>): T {
+    fun <T : IrFunction> T.enterLocalScope(function: FirFunction<*>): T {
         enterScope(descriptor)
         for ((firParameter, irParameter) in function.valueParameters.zip(valueParameters)) {
             irSymbolTable.introduceValueParameter(irParameter)
@@ -413,12 +433,17 @@ class Fir2IrDeclarationStorage(
                 propertyAccessor?.visibility ?: correspondingProperty.visibility,
                 correspondingProperty.modality, accessorReturnType,
                 isInline = false, isExternal = false, isTailrec = false, isSuspend = false
-            ).bindAndDeclareParameters(
+            ).apply {
+                if (propertyAccessor == null && isSetter) {
+                    declareDefaultSetterParameter(propertyType)
+                }
+            }.bindAndDeclareParameters(
                 propertyAccessor, descriptor, irParent, isStatic = irParent !is IrClass, shouldLeaveScope = true
             ).apply {
                 if (irParent != null) {
                     parent = irParent
                 }
+                correspondingPropertySymbol = correspondingProperty.symbol
             }
         }
     }
@@ -446,9 +471,25 @@ class Fir2IrDeclarationStorage(
                     ).apply {
                         descriptor.bind(this)
                         val type = property.returnTypeRef.toIrType(session, this@Fir2IrDeclarationStorage)
-                        getter = createIrPropertyAccessor(property.getter, this, type, irParent, false, origin, startOffset, endOffset)
+                        getter = createIrPropertyAccessor(
+                            property.getter, this, type, irParent, false,
+                            when {
+                                property.delegate != null -> IrDeclarationOrigin.DELEGATED_PROPERTY_ACCESSOR
+                                property.getter is FirDefaultPropertyGetter -> IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR
+                                else -> origin
+                            },
+                            startOffset, endOffset
+                        )
                         if (property.isVar) {
-                            setter = createIrPropertyAccessor(property.setter, this, type, irParent, true, origin, startOffset, endOffset)
+                            setter = createIrPropertyAccessor(
+                                property.setter, this, type, irParent, true,
+                                when {
+                                    property.delegate != null -> IrDeclarationOrigin.DELEGATED_PROPERTY_ACCESSOR
+                                    property.setter is FirDefaultPropertySetter -> IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR
+                                    else -> origin
+                                },
+                                startOffset, endOffset
+                            )
                         }
                     }
                 }

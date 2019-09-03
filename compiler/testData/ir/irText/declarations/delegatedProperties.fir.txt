@@ -14,7 +14,7 @@ FILE fqName:<root> fileName:/delegatedProperties.kt
           CALL 'public final fun getValue (thisRef: kotlin.Any?, property: kotlin.reflect.KProperty<*>): T of <uninitialized parent> [inline] declared in kotlin' type=kotlin.Int origin=null
             $receiver: GET_FIELD 'FIELD DELEGATE name:test1$delegate type:kotlin.Lazy<kotlin.Int> visibility:private [final,static]' type=kotlin.Lazy<kotlin.Int> origin=GET_PROPERTY
             thisRef: CONST Null type=kotlin.Nothing? value=null
-            property: PROPERTY_REFERENCE 'public final test1: kotlin.Int [delegated,val]' field='FIELD DELEGATE name:test1$delegate type:kotlin.Lazy<kotlin.Int> visibility:private [final,static]' getter='public final fun <get-test1> (): kotlin.Int declared in <no parent>' setter=null type=kotlin.reflect.KProperty<*> origin=null
+            property: PROPERTY_REFERENCE 'public final test1: kotlin.Int [delegated,val]' field='FIELD DELEGATE name:test1$delegate type:kotlin.Lazy<kotlin.Int> visibility:private [final,static]' getter='public final fun <get-test1> (): kotlin.Int declared in <root>' setter=null type=kotlin.reflect.KProperty<*> origin=null
   CLASS CLASS name:C modality:FINAL visibility:public superTypes:[kotlin.Any]
     $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:<root>.C
     CONSTRUCTOR visibility:public <> (map:kotlin.collections.MutableMap<kotlin.String, kotlin.Any>) returnType:<root>.C [primary]
@@ -95,12 +95,12 @@ FILE fqName:<root> fileName:/delegatedProperties.kt
         RETURN type=kotlin.Nothing from='public final fun <get-test4> (): IrErrorType declared in <root>'
           ERROR_CALL 'Unresolved reference: <Ambiguity: getValue, [kotlin/collections/getValue, kotlin/collections/getValue, kotlin/collections/getValue]>#' type=IrErrorType
             CONST Null type=kotlin.Nothing? value=null
-            PROPERTY_REFERENCE 'public final test4: IrErrorType [delegated,var]' field='FIELD DELEGATE name:test4$delegate type:java.util.HashMap<kotlin.String, kotlin.Any> visibility:private [final,static]' getter='public final fun <get-test4> (): IrErrorType declared in <no parent>' setter='public final fun <set-test4> (<set-?>: IrErrorType): kotlin.Unit declared in <no parent>' type=kotlin.reflect.KProperty<*> origin=null
+            PROPERTY_REFERENCE 'public final test4: IrErrorType [delegated,var]' field='FIELD DELEGATE name:test4$delegate type:java.util.HashMap<kotlin.String, kotlin.Any> visibility:private [final,static]' getter='public final fun <get-test4> (): IrErrorType declared in <root>' setter='public final fun <set-test4> (<set-?>: IrErrorType): kotlin.Unit declared in <root>' type=kotlin.reflect.KProperty<*> origin=null
     FUN DELEGATED_PROPERTY_ACCESSOR name:<set-test4> visibility:public modality:FINAL <> (<set-?>:IrErrorType) returnType:kotlin.Unit
       correspondingProperty: PROPERTY name:test4 visibility:public modality:FINAL [delegated,var]
       VALUE_PARAMETER name:<set-?> index:0 type:IrErrorType
       BLOCK_BODY
         ERROR_CALL 'Unresolved reference: <Inapplicable(INAPPLICABLE): [kotlin/collections/setValue]>#' type=IrErrorType
           CONST Null type=kotlin.Nothing? value=null
-          PROPERTY_REFERENCE 'public final test4: IrErrorType [delegated,var]' field='FIELD DELEGATE name:test4$delegate type:java.util.HashMap<kotlin.String, kotlin.Any> visibility:private [final,static]' getter='public final fun <get-test4> (): IrErrorType declared in <root>' setter='public final fun <set-test4> (<set-?>: IrErrorType): kotlin.Unit declared in <no parent>' type=kotlin.reflect.KProperty<*> origin=null
+          PROPERTY_REFERENCE 'public final test4: IrErrorType [delegated,var]' field='FIELD DELEGATE name:test4$delegate type:java.util.HashMap<kotlin.String, kotlin.Any> visibility:private [final,static]' getter='public final fun <get-test4> (): IrErrorType declared in <root>' setter='public final fun <set-test4> (<set-?>: IrErrorType): kotlin.Unit declared in <root>' type=kotlin.reflect.KProperty<*> origin=null
           GET_VAR '<set-?>: IrErrorType declared in <root>.<set-test4>' type=IrErrorType origin=null
