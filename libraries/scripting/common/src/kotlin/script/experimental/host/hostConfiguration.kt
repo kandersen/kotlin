@@ -46,10 +46,10 @@ fun ScriptingHostConfiguration?.with(body: ScriptingHostConfiguration.Builder.()
 /**
  * Add the values not explicitly set in the receiver from the [defaults] configuration
  */
-fun ScriptingHostConfiguration.withDefaultsFrom(defaults: ScriptingHostConfiguration): ScriptingHostConfiguration =
+fun ScriptingHostConfiguration?.withDefaultsFrom(defaults: ScriptingHostConfiguration): ScriptingHostConfiguration =
     when {
-        this == defaults || defaults.isEmpty() -> this
-        this.isEmpty() -> defaults
+        this == defaults || defaults.isEmpty() -> this ?: defaults
+        this == null || this.isEmpty() -> defaults
         else -> ScriptingHostConfiguration(defaults, this)
     }
 
