@@ -782,7 +782,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
     }
 
     companion object {
-        const val ROOT_PREFIX = "___rO0T___"
+        const val ROOT_PREFIX = "_Qfadj4tPV"
         const val ROOT_PREFIX_WITH_DOT = "$ROOT_PREFIX."
     }
 }

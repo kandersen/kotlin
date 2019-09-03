@@ -1,3 +1,3 @@
 
-fun f(s: <selection>___rO0T___.same.same</selection>) {
+fun f(s: <selection>_Qfadj4tPV.same.same</selection>) {
 }
