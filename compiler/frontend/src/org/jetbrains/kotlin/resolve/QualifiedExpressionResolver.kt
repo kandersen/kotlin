@@ -452,8 +452,8 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
         shouldBeVisibleFrom: DeclarationDescriptor?,
         scopeForFirstPart: LexicalScope?,
         position: QualifierPosition,
-        isValue: ((KtSimpleNameExpression) -> Boolean)? = null,
-        startWithPackagePrefix: Boolean = false
+        isStartWithPackagePrefix: Boolean = false,
+        isValue: ((KtSimpleNameExpression) -> Boolean)? = null
     ): Pair<DeclarationDescriptor?, Int> {
         if (resolveInIDEMode(path)) {
             return resolveToPackageOrClassPrefix(
@@ -463,7 +463,8 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                 shouldBeVisibleFrom,
                 scopeForFirstPart,
                 position,
-                startWithPackagePrefix = true
+                isStartWithPackagePrefix = true,
+                isValue = null
             ).let { it.first to it.second + 1 }
         }
 
@@ -483,7 +484,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
         }
 
         val classifierDescriptor = scopeForFirstPart?.takeUnless {
-            startWithPackagePrefix
+            isStartWithPackagePrefix
         }?.findClassifier(firstPart.name, firstPart.location)
 
         if (classifierDescriptor != null) {
