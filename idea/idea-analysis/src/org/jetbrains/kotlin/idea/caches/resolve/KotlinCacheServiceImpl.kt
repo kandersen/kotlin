@@ -37,14 +37,18 @@ import org.jetbrains.kotlin.analyzer.ResolverForProject.Companion.resolverForSpe
 import org.jetbrains.kotlin.builtins.DefaultBuiltIns
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.caches.project.cacheByClass
+import org.jetbrains.kotlin.caches.project.cacheInvalidatingOnRootModifications
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.config.LanguageFeature
+import org.jetbrains.kotlin.config.isTypeRefinementEnabled
 import org.jetbrains.kotlin.context.GlobalContext
 import org.jetbrains.kotlin.context.GlobalContextImpl
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.idea.caches.project.*
 import org.jetbrains.kotlin.idea.caches.project.IdeaModuleInfo
 import org.jetbrains.kotlin.idea.caches.resolve.util.contextWithCompositeExceptionTracker
+import org.jetbrains.kotlin.idea.caches.trackers.KotlinCodeBlockModificationListener
+import org.jetbrains.kotlin.idea.caches.trackers.outOfBlockModificationCount
 import org.jetbrains.kotlin.idea.compiler.IDELanguageSettingsProvider
 import org.jetbrains.kotlin.idea.core.script.ScriptDependenciesModificationTracker
 import org.jetbrains.kotlin.idea.core.script.dependencies.ScriptAdditionalIdeaDependenciesProvider
@@ -174,7 +178,7 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
             //TODO: provide correct trackers
             dependencies = dependenciesForScriptDependencies,
             moduleFilter = { it == dependenciesModuleInfo },
-            invalidateOnOOCB = false,
+            invalidateOnOOCB = true,
             syntheticFiles = syntheticFiles,
             builtInsCache = globalFacade.builtInsCache
         )
@@ -255,13 +259,21 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
 
         // File copies are created during completion and receive correct modification events through POM.
         // Dummy files created e.g. by J2K do not receive events.
-        val dependenciesForSyntheticFileCache = if (files.all { it.originalFile != it }) {
-            listOf(ModificationTracker {
-                files.sumByLong { it.modificationStamp }
-            })
+        val filesModificationTracker = if (files.all { it.originalFile != it }) {
+            ModificationTracker {
+                files.sumByLong { it.outOfBlockModificationCount }
+            }
         } else {
-            emptyList()
+            ModificationTracker {
+                files.sumByLong { it.outOfBlockModificationCount + it.modificationStamp }
+            }
         }
+
+        val dependenciesForSyntheticFileCache =
+            listOf(
+                KotlinCodeBlockModificationListener.getInstance(project).kotlinOutOfCodeBlockTracker,
+                filesModificationTracker
+            )
 
         val resolverDebugName =
             "$resolverForSpecialInfoName $specialModuleInfo for files ${files.joinToString { it.name }} for platform $targetPlatform"
