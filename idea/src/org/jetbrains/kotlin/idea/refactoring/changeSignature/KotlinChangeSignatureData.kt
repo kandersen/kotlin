@@ -28,17 +28,13 @@ import org.jetbrains.kotlin.idea.caches.resolve.unsafeResolveToDescriptor
 import org.jetbrains.kotlin.idea.codeInsight.DescriptorToSourceUtilsIde
 import org.jetbrains.kotlin.idea.refactoring.changeSignature.usages.KotlinCallableDefinitionUsage
 import org.jetbrains.kotlin.idea.search.declarationsSearch.forEachOverridingElement
-import org.jetbrains.kotlin.idea.util.IdeDescriptorRenderers
-import org.jetbrains.kotlin.idea.util.actualsForExpected
-import org.jetbrains.kotlin.idea.util.isExpectDeclaration
+import org.jetbrains.kotlin.idea.util.*
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.psiUtil.quoteIfNeeded
 import org.jetbrains.kotlin.resolve.DescriptorUtils
-import org.jetbrains.kotlin.utils.SmartList
-import java.util.*
 
 class KotlinChangeSignatureData(
     override val baseDescriptor: CallableDescriptor,
@@ -101,30 +97,46 @@ class KotlinChangeSignatureData(
     }
 
     override val affectedCallables: Collection<UsageInfo> by lazy {
-        primaryCallables + primaryCallables.flatMapTo(HashSet<UsageInfo>()) { primaryFunction ->
-            val primaryDeclaration = primaryFunction.declaration as? KtDeclaration ?: return@flatMapTo emptyList()
+        val results = hashSetOf<UsageInfo>()
 
-            if (primaryDeclaration.isExpectDeclaration()) {
-                return@flatMapTo primaryDeclaration.actualsForExpected().mapNotNull {
-                    val callableDescriptor = when (val descriptor = it.unsafeResolveToDescriptor()) {
-                        is CallableDescriptor -> descriptor
-                        is ClassDescriptor -> descriptor.unsubstitutedPrimaryConstructor ?: return@mapNotNull null
-                        else -> return@mapNotNull null
-                    }
-                    KotlinCallableDefinitionUsage<PsiElement>(it, callableDescriptor, primaryFunction, null)
+        fun processor(declaration: KtDeclaration, primaryFunction: KotlinCallableDefinitionUsage<PsiElement>) {
+            fun checkMember(it: KtDeclaration) {
+                val callableDescriptor = when (val descriptor = it.unsafeResolveToDescriptor()) {
+                    is CallableDescriptor -> descriptor
+                    is ClassDescriptor -> descriptor.unsubstitutedPrimaryConstructor ?: return
+                    else -> return
+                }
+                val usage =
+                    KotlinCallableDefinitionUsage<PsiElement>(it, callableDescriptor, primaryFunction, null, canDropOverride = false)
+                if (results.add(usage)) {
+                    processor(it, primaryFunction)
                 }
             }
 
-            if (primaryDeclaration !is KtCallableDeclaration) return@flatMapTo emptyList()
+            if (declaration.isEffectivelyActual()) {
+                declaration.liftToExpected()?.let { checkMember(it) }
+            }
 
-            val results = SmartList<UsageInfo>()
+            if (declaration.isExpectDeclaration()) {
+                loop@ for (it in declaration.actualsForExpected()) {
+                    checkMember(it)
+                }
+            }
 
-            primaryDeclaration.forEachOverridingElement { baseElement, overridingElement ->
+            if (declaration !is KtCallableDeclaration) return
+
+            declaration.forEachOverridingElement { baseElement, overridingElement ->
                 val currentDeclaration = overridingElement.namedUnwrappedElement
                 results += when (currentDeclaration) {
                     is KtDeclaration -> {
                         val overridingDescriptor = currentDeclaration.unsafeResolveToDescriptor() as CallableDescriptor
-                        KotlinCallableDefinitionUsage(currentDeclaration, overridingDescriptor, primaryFunction, null)
+                        KotlinCallableDefinitionUsage(
+                            currentDeclaration,
+                            overridingDescriptor,
+                            primaryFunction,
+                            null,
+                            canDropOverride = false
+                        )
                     }
 
                     is PsiMethod -> {
@@ -137,9 +149,14 @@ class KotlinChangeSignatureData(
 
                 true
             }
-
-            results
         }
+
+        results += primaryCallables
+        for (primaryCallable in primaryCallables) {
+            val primaryDeclaration = primaryCallable.declaration as? KtDeclaration ?: continue
+            processor(primaryDeclaration, primaryCallable)
+        }
+        results
     }
 
     override fun getParameters(): List<KotlinParameterInfo> = parameters

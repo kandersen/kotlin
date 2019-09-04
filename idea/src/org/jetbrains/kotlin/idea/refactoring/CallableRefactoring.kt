@@ -52,13 +52,10 @@ import java.util.*
 
 abstract class CallableRefactoring<out T : CallableDescriptor>(
     val project: Project,
-    callableDescriptor: T,
+    val callableDescriptor: T,
     val commandName: String
 ) {
     private val LOG = Logger.getInstance(CallableRefactoring::class.java)
-
-    @Suppress("UNCHECKED_CAST")
-    val callableDescriptor = callableDescriptor.liftToExpected() as? T ?: callableDescriptor
 
     private val kind = (callableDescriptor as? CallableMemberDescriptor)?.kind ?: DECLARATION
 
