@@ -443,7 +443,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
     }
 
     private fun resolveInIDEMode(path: List<QualifierPart>): Boolean =
-        languageVersionSettings.getFlag(AnalysisFlags.ideMode) && path.firstOrNull()?.name?.asString() == ROOT_PREFIX
+        languageVersionSettings.getFlag(AnalysisFlags.ideMode) && path.size > 1 && path.first().name.asString() == ROOT_PREFIX
 
     private fun resolveToPackageOrClassPrefix(
         path: List<QualifierPart>,
