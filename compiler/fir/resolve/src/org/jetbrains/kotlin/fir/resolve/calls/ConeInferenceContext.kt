@@ -182,6 +182,11 @@ interface ConeInferenceContext : TypeSystemInferenceExtensionContext,
         return this.typeConstructor().isUnitTypeConstructor() && !this.isNullable
     }
 
+    override fun SimpleTypeMarker.withNullability(nullable: Boolean): SimpleTypeMarker {
+        require(this is ConeKotlinType)
+        return this.withNullability(ConeNullability.create(nullable))
+    }
+
     override fun KotlinTypeMarker.withNullability(nullable: Boolean): KotlinTypeMarker {
         require(this is ConeKotlinType)
         return this.withNullability(ConeNullability.create(nullable))
