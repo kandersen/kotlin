@@ -434,7 +434,11 @@ fun main(args: Array<String>) {
         }
 
         testClass<AbstractIrBytecodeTextTest> {
-            model("codegen/bytecodeText", targetBackend = TargetBackend.JVM_IR)
+            model(
+                "codegen/bytecodeText",
+                targetBackend = TargetBackend.JVM_IR,
+                excludeDirs = listOf("ieee754LanguageVersion10")
+            )
         }
     }
 
