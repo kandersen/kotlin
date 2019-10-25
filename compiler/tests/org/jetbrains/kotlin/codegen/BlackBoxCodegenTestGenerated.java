@@ -12121,6 +12121,11 @@ public class BlackBoxCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
                 runTest("compiler/testData/codegen/box/ieee754/oldLanguageVersions/when10.kt");
             }
 
+            @TestMetadata("when10_properIeeeComparisons.kt")
+            public void testWhen10_properIeeeComparisons() throws Exception {
+                runTest("compiler/testData/codegen/box/ieee754/oldLanguageVersions/when10_properIeeeComparisons.kt");
+            }
+
             @TestMetadata("whenNullableSmartCast10.kt")
             public void testWhenNullableSmartCast10() throws Exception {
                 runTest("compiler/testData/codegen/box/ieee754/oldLanguageVersions/whenNullableSmartCast10.kt");
