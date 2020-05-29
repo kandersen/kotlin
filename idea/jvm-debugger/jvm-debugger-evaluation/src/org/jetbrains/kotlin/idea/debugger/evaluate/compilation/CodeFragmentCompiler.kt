@@ -6,11 +6,13 @@
 package org.jetbrains.kotlin.idea.debugger.evaluate.compilation
 
 import org.jetbrains.kotlin.backend.common.output.OutputFile
+import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.codegen.*
 import org.jetbrains.kotlin.codegen.CodeFragmentCodegen.Companion.getSharedTypeIfApplicable
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
@@ -43,6 +45,8 @@ import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.SimpleType
 import org.jetbrains.kotlin.utils.Printer
+import org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory
+import org.jetbrains.kotlin.backend.jvm.jvmPhases
 
 class CodeFragmentCompiler(private val executionContext: ExecutionContext, private val status: EvaluationStatus) {
     data class CompilationResult(
@@ -76,12 +80,15 @@ class CodeFragmentCompiler(private val executionContext: ExecutionContext, priva
         val returnType = getReturnType(codeFragment, bindingContext, defaultReturnType)
 
         val compilerConfiguration = CompilerConfiguration()
+        compilerConfiguration.put(JVMConfigurationKeys.IR, true)
         compilerConfiguration.languageVersionSettings = codeFragment.languageVersionSettings
+
+        val codegenFactory = JvmIrCodegenFactory(PhaseConfig(jvmPhases))
 
         val generationState = GenerationState.Builder(
             project, ClassBuilderFactories.BINARIES, moduleDescriptorWrapper,
             bindingContext, filesToCompile, compilerConfiguration
-        ).generateDeclaredClassFilter(GeneratedClassFilterForCodeFragment(codeFragment)).build()
+        ).codegenFactory(codegenFactory).generateDeclaredClassFilter(GeneratedClassFilterForCodeFragment(codeFragment)).build()
 
         val parameterInfo = CodeFragmentParameterAnalyzer(executionContext, codeFragment, bindingContext, status).analyze()
         val (classDescriptor, methodDescriptor) = createDescriptorsForCodeFragment(

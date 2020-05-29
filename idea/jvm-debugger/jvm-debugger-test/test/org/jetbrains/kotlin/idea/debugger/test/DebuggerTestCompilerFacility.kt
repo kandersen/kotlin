@@ -90,7 +90,7 @@ class DebuggerTestCompilerFacility(files: List<TestFile>, private val jvmTarget:
             MockLibraryUtil.compileKotlin(
                 srcDir.absolutePath,
                 classesDir,
-                listOf("-jvm-target", jvmTarget.description),
+                listOf("-jvm-target", jvmTarget.description),//, "-Xuse-ir"),
                 *(mavenArtifacts.toTypedArray())
             )
         }
@@ -162,6 +162,7 @@ class DebuggerTestCompilerFacility(files: List<TestFile>, private val jvmTarget:
 
         val configuration = CompilerConfiguration()
         configuration.put(JVMConfigurationKeys.JVM_TARGET, jvmTarget)
+//        configuration.put(JVMConfigurationKeys.IR, true)
 
         val state = GenerationState.Builder(project, ClassBuilderFactories.BINARIES, moduleDescriptor, bindingContext, files, configuration)
             .generateDeclaredClassFilter(GenerationState.GenerateClassFilter.GENERATE_ALL)

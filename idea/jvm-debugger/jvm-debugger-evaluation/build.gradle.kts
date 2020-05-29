@@ -9,6 +9,8 @@ dependencies {
     compile(project(":idea:idea-core"))
     compile(project(":idea:idea-j2k"))
     compile(project(":idea:jvm-debugger:jvm-debugger-util"))
+    compile(project(":compiler:backend"))
+    compile(project(":compiler:backend.jvm"))
 
     compileOnly(toolsJarApi())
     Platform[192].orHigher {
