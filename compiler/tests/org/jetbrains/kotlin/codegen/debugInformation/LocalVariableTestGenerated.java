@@ -32,6 +32,12 @@ public class LocalVariableTestGenerated extends AbstractLocalVariableTest {
     }
 
     @Test
+    @TestMetadata("catchClause.kt")
+    public void testCatchClause() throws Exception {
+        runTest("compiler/testData/debug/localVariables/catchClause.kt");
+    }
+
+    @Test
     @TestMetadata("copyFunction.kt")
     public void testCopyFunction() throws Exception {
         runTest("compiler/testData/debug/localVariables/copyFunction.kt");
@@ -50,14 +56,192 @@ public class LocalVariableTestGenerated extends AbstractLocalVariableTest {
     }
 
     @Test
+    @TestMetadata("destructuringInlineLambda.kt")
+    public void testDestructuringInlineLambda() throws Exception {
+        runTest("compiler/testData/debug/localVariables/destructuringInlineLambda.kt");
+    }
+
+    @Test
+    @TestMetadata("inlineLambdaWithItParam.kt")
+    public void testInlineLambdaWithItParam() throws Exception {
+        runTest("compiler/testData/debug/localVariables/inlineLambdaWithItParam.kt");
+    }
+
+    @Test
+    @TestMetadata("inlineLambdaWithParam.kt")
+    public void testInlineLambdaWithParam() throws Exception {
+        runTest("compiler/testData/debug/localVariables/inlineLambdaWithParam.kt");
+    }
+
+    @Test
+    @TestMetadata("inlineProperty.kt")
+    public void testInlineProperty() throws Exception {
+        runTest("compiler/testData/debug/localVariables/inlineProperty.kt");
+    }
+
+    @Test
+    @TestMetadata("inlineSimple.kt")
+    public void testInlineSimple() throws Exception {
+        runTest("compiler/testData/debug/localVariables/inlineSimple.kt");
+    }
+
+    @Test
+    @TestMetadata("inlineSimpleChain.kt")
+    public void testInlineSimpleChain() throws Exception {
+        runTest("compiler/testData/debug/localVariables/inlineSimpleChain.kt");
+    }
+
+    @Test
+    @TestMetadata("itInLambda.kt")
+    public void testItInLambda() throws Exception {
+        runTest("compiler/testData/debug/localVariables/itInLambda.kt");
+    }
+
+    @Test
+    @TestMetadata("itInReturnedLambda.kt")
+    public void testItInReturnedLambda() throws Exception {
+        runTest("compiler/testData/debug/localVariables/itInReturnedLambda.kt");
+    }
+
+    @Test
+    @TestMetadata("jvmOverloads.kt")
+    public void testJvmOverloads() throws Exception {
+        runTest("compiler/testData/debug/localVariables/jvmOverloads.kt");
+    }
+
+    @Test
+    @TestMetadata("kt11117.kt")
+    public void testKt11117() throws Exception {
+        runTest("compiler/testData/debug/localVariables/kt11117.kt");
+    }
+
+    @Test
+    @TestMetadata("lambdaAsVar.kt")
+    public void testLambdaAsVar() throws Exception {
+        runTest("compiler/testData/debug/localVariables/lambdaAsVar.kt");
+    }
+
+    @Test
     @TestMetadata("localFun.kt")
     public void testLocalFun() throws Exception {
         runTest("compiler/testData/debug/localVariables/localFun.kt");
     }
 
     @Test
+    @TestMetadata("receiverParameter.kt")
+    public void testReceiverParameter() throws Exception {
+        runTest("compiler/testData/debug/localVariables/receiverParameter.kt");
+    }
+
+    @Test
     @TestMetadata("underscoreNames.kt")
     public void testUnderscoreNames() throws Exception {
         runTest("compiler/testData/debug/localVariables/underscoreNames.kt");
+    }
+
+    @TestMetadata("compiler/testData/debug/localVariables/completionInSuspendFunction")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(BlockJUnit4ClassRunner.class)
+    public static class CompletionInSuspendFunction extends AbstractLocalVariableTest {
+        private void runTest(String testDataFilePath) throws Exception {
+            KotlinTestUtils.runTest(this::doTest, TargetBackend.JVM, testDataFilePath);
+        }
+
+        @Test
+        public void testAllFilesPresentInCompletionInSuspendFunction() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/debug/localVariables/completionInSuspendFunction"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM, true);
+        }
+
+        @Test
+        @TestMetadata("nonStaticSimple.kt")
+        public void testNonStaticSimple() throws Exception {
+            runTest("compiler/testData/debug/localVariables/completionInSuspendFunction/nonStaticSimple.kt");
+        }
+
+        @Test
+        @TestMetadata("nonStaticStateMachine.kt")
+        public void testNonStaticStateMachine() throws Exception {
+            runTest("compiler/testData/debug/localVariables/completionInSuspendFunction/nonStaticStateMachine.kt");
+        }
+
+        @Test
+        @TestMetadata("staticSimple.kt")
+        public void testStaticSimple() throws Exception {
+            runTest("compiler/testData/debug/localVariables/completionInSuspendFunction/staticSimple.kt");
+        }
+
+        @Test
+        @TestMetadata("staticSimpleReceiver.kt")
+        public void testStaticSimpleReceiver() throws Exception {
+            runTest("compiler/testData/debug/localVariables/completionInSuspendFunction/staticSimpleReceiver.kt");
+        }
+
+        @Test
+        @TestMetadata("staticStateMachine.kt")
+        public void testStaticStateMachine() throws Exception {
+            runTest("compiler/testData/debug/localVariables/completionInSuspendFunction/staticStateMachine.kt");
+        }
+
+        @Test
+        @TestMetadata("staticStateMachineReceiver.kt")
+        public void testStaticStateMachineReceiver() throws Exception {
+            runTest("compiler/testData/debug/localVariables/completionInSuspendFunction/staticStateMachineReceiver.kt");
+        }
+    }
+
+    @TestMetadata("compiler/testData/debug/localVariables/parametersInSuspendLambda")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(BlockJUnit4ClassRunner.class)
+    public static class ParametersInSuspendLambda extends AbstractLocalVariableTest {
+        private void runTest(String testDataFilePath) throws Exception {
+            KotlinTestUtils.runTest(this::doTest, TargetBackend.JVM, testDataFilePath);
+        }
+
+        @Test
+        public void testAllFilesPresentInParametersInSuspendLambda() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/debug/localVariables/parametersInSuspendLambda"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM, true);
+        }
+
+        @Test
+        @TestMetadata("dataClass.kt")
+        public void testDataClass() throws Exception {
+            runTest("compiler/testData/debug/localVariables/parametersInSuspendLambda/dataClass.kt");
+        }
+
+        @Test
+        @TestMetadata("extensionComponents.kt")
+        public void testExtensionComponents() throws Exception {
+            runTest("compiler/testData/debug/localVariables/parametersInSuspendLambda/extensionComponents.kt");
+        }
+
+        @Test
+        @TestMetadata("generic.kt")
+        public void testGeneric() throws Exception {
+            runTest("compiler/testData/debug/localVariables/parametersInSuspendLambda/generic.kt");
+        }
+
+        @Test
+        @TestMetadata("inline.kt")
+        public void testInline() throws Exception {
+            runTest("compiler/testData/debug/localVariables/parametersInSuspendLambda/inline.kt");
+        }
+
+        @Test
+        @TestMetadata("otherParameters.kt")
+        public void testOtherParameters() throws Exception {
+            runTest("compiler/testData/debug/localVariables/parametersInSuspendLambda/otherParameters.kt");
+        }
+
+        @Test
+        @TestMetadata("parameters.kt")
+        public void testParameters() throws Exception {
+            runTest("compiler/testData/debug/localVariables/parametersInSuspendLambda/parameters.kt");
+        }
+
+        @Test
+        @TestMetadata("underscoreNames.kt")
+        public void testUnderscoreNames() throws Exception {
+            runTest("compiler/testData/debug/localVariables/parametersInSuspendLambda/underscoreNames.kt");
+        }
     }
 }
