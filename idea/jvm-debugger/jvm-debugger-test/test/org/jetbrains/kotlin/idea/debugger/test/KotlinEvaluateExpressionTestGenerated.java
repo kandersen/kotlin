@@ -629,6 +629,11 @@ public class KotlinEvaluateExpressionTestGenerated extends AbstractKotlinEvaluat
             public void testStringUpdateVariable() throws Exception {
                 runTest("idea/jvm-debugger/jvm-debugger-test/testData/evaluation/singleBreakpoint/coroutines/stringUpdateVariable.kt");
             }
+
+            @TestMetadata("suspendLambdaParameter.kt")
+            public void testSuspendLambdaParameter() throws Exception {
+                runTest("idea/jvm-debugger/jvm-debugger-test/testData/evaluation/singleBreakpoint/coroutines/suspendLambdaParameter.kt");
+            }
         }
 
         @TestMetadata("idea/jvm-debugger/jvm-debugger-test/testData/evaluation/singleBreakpoint/createExpression")

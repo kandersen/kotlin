@@ -68,6 +68,12 @@ public class IrLocalVariableTestGenerated extends AbstractIrLocalVariableTest {
     }
 
     @Test
+    @TestMetadata("lambdaParameter.kt")
+    public void testLambdaParameter() throws Exception {
+        runTest("compiler/testData/debug/localVariables/lambdaParameter.kt");
+    }
+
+    @Test
     @TestMetadata("localFun.kt")
     public void testLocalFun() throws Exception {
         runTest("compiler/testData/debug/localVariables/localFun.kt");
@@ -99,9 +105,21 @@ public class IrLocalVariableTestGenerated extends AbstractIrLocalVariableTest {
         }
 
         @Test
+        @TestMetadata("dataClass.kt")
+        public void testDataClass() throws Exception {
+            runTest("compiler/testData/debug/localVariables/suspend/dataClass.kt");
+        }
+
+        @Test
         @TestMetadata("simple.kt")
         public void testSimple() throws Exception {
             runTest("compiler/testData/debug/localVariables/suspend/simple.kt");
+        }
+
+        @Test
+        @TestMetadata("suspendLambdaParameter.kt")
+        public void testSuspendLambdaParameter() throws Exception {
+            runTest("compiler/testData/debug/localVariables/suspend/suspendLambdaParameter.kt");
         }
 
         @Test
