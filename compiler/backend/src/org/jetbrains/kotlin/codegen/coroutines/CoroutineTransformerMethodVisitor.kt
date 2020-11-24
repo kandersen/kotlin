@@ -21,6 +21,7 @@ import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
 import org.jetbrains.org.objectweb.asm.tree.*
 import org.jetbrains.org.objectweb.asm.tree.analysis.BasicValue
+import kotlin.coroutines.coroutineContext
 import kotlin.math.max
 
 private const val COROUTINES_DEBUG_METADATA_VERSION = 1
