@@ -117,11 +117,6 @@ public class IrCheckLocalVariablesTableTestGenerated extends AbstractIrCheckLoca
             KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/checkLocalVariablesTable/parametersInSuspendLambda"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM_IR, true);
         }
 
-        @TestMetadata("dataClass.kt")
-        public void testDataClass() throws Exception {
-            runTest("compiler/testData/checkLocalVariablesTable/parametersInSuspendLambda/dataClass.kt");
-        }
-
         @TestMetadata("extensionComponents.kt")
         public void testExtensionComponents() throws Exception {
             runTest("compiler/testData/checkLocalVariablesTable/parametersInSuspendLambda/extensionComponents.kt");
@@ -130,21 +125,6 @@ public class IrCheckLocalVariablesTableTestGenerated extends AbstractIrCheckLoca
         @TestMetadata("generic.kt")
         public void testGeneric() throws Exception {
             runTest("compiler/testData/checkLocalVariablesTable/parametersInSuspendLambda/generic.kt");
-        }
-
-        @TestMetadata("inline.kt")
-        public void testInline() throws Exception {
-            runTest("compiler/testData/checkLocalVariablesTable/parametersInSuspendLambda/inline.kt");
-        }
-
-        @TestMetadata("otherParameters.kt")
-        public void testOtherParameters() throws Exception {
-            runTest("compiler/testData/checkLocalVariablesTable/parametersInSuspendLambda/otherParameters.kt");
-        }
-
-        @TestMetadata("parameters.kt")
-        public void testParameters() throws Exception {
-            runTest("compiler/testData/checkLocalVariablesTable/parametersInSuspendLambda/parameters.kt");
         }
     }
 }

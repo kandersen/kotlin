@@ -1,4 +1,6 @@
-// WITH_RUNTIME
+
+// WITH_COROUTINES
+// FILE: test.kt
 class A<T>(val x: String, val y: String, val z: T)
 
 suspend fun <T> foo(a: A<T>, block: suspend (A<T>) -> String): String = block(a)
@@ -17,7 +19,9 @@ suspend fun B.bar(): String {
     }
 }
 
-suspend fun test() = B.bar()
+suspend fun box() {
+    B.bar()
+}
 
 // Local function bodies (i.e., `A<R>.component3()`) are in a separate class (implementing FunctionN) for non-IR, and are static methods
 // in the enclosing class for IR. Therefore the ordinal in the suspend lambda class name is different for non-IR (`$3`) vs IR (e.g., `$2`).

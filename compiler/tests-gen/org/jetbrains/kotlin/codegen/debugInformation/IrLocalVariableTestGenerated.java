@@ -228,5 +228,49 @@ public class IrLocalVariableTestGenerated extends AbstractIrLocalVariableTest {
                 runTest("compiler/testData/debug/localVariables/suspend/completion/staticStateMachineReceiver.kt");
             }
         }
+
+        @TestMetadata("compiler/testData/debug/localVariables/suspend/parameters")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(BlockJUnit4ClassRunner.class)
+        public static class Parameters extends AbstractIrLocalVariableTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest(this::doTest, TargetBackend.JVM_IR, testDataFilePath);
+            }
+
+            @Test
+            public void testAllFilesPresentInParameters() throws Exception {
+                KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/debug/localVariables/suspend/parameters"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM_IR, true);
+            }
+
+            @Test
+            @TestMetadata("dataClass.kt")
+            public void testDataClass() throws Exception {
+                runTest("compiler/testData/debug/localVariables/suspend/parameters/dataClass.kt");
+            }
+
+            @Test
+            @TestMetadata("generic.kt")
+            public void testGeneric() throws Exception {
+                runTest("compiler/testData/debug/localVariables/suspend/parameters/generic.kt");
+            }
+
+            @Test
+            @TestMetadata("inline.kt")
+            public void testInline() throws Exception {
+                runTest("compiler/testData/debug/localVariables/suspend/parameters/inline.kt");
+            }
+
+            @Test
+            @TestMetadata("otherParameters.kt")
+            public void testOtherParameters() throws Exception {
+                runTest("compiler/testData/debug/localVariables/suspend/parameters/otherParameters.kt");
+            }
+
+            @Test
+            @TestMetadata("parameters.kt")
+            public void testParameters() throws Exception {
+                runTest("compiler/testData/debug/localVariables/suspend/parameters/parameters.kt");
+            }
+        }
     }
 }
