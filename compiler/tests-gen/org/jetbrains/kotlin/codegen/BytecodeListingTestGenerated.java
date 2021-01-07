@@ -455,6 +455,16 @@ public class BytecodeListingTestGenerated extends AbstractBytecodeListingTest {
             runTest("compiler/testData/codegen/bytecodeListing/collectionStubs/observableMutableMap.kt");
         }
 
+        @TestMetadata("regression.kt")
+        public void testRegression() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/collectionStubs/regression.kt");
+        }
+
+        @TestMetadata("regressionNegative.kt")
+        public void testRegressionNegative() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/collectionStubs/regressionNegative.kt");
+        }
+
         @TestMetadata("stubForAbstractFun.kt")
         public void testStubForAbstractFun() throws Exception {
             runTest("compiler/testData/codegen/bytecodeListing/collectionStubs/stubForAbstractFun.kt");

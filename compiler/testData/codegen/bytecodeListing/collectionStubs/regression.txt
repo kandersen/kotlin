@@ -1,0 +1,7 @@
+@kotlin.Metadata
+public final class RecordingEvents {
+    // source: 'regression.kt'
+    private final field received: java.util.concurrent.CopyOnWriteArrayList
+    public method <init>(): void
+    public @org.jetbrains.annotations.NotNull method iterator(): java.util.Iterator
+}

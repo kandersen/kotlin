@@ -28,11 +28,24 @@ object FakePureImplementationsProvider {
     }
 
     init {
-        FqNames.mutableList implementedWith fqNameListOf("java.util.ArrayList", "java.util.LinkedList")
-        FqNames.mutableSet implementedWith fqNameListOf("java.util.HashSet", "java.util.TreeSet", "java.util.LinkedHashSet")
+        FqNames.mutableList implementedWith fqNameListOf(
+            "java.util.ArrayList",
+            "java.util.LinkedList",
+            "java.util.concurrent.CopyOnWriteArrayList"
+        )
+        FqNames.mutableSet implementedWith fqNameListOf(
+            "java.util.HashSet",
+            "java.util.TreeSet",
+            "java.util.LinkedHashSet",
+            "java.util.concurrent.ConcurrentSkipListSet",
+            "java.util.concurrent.CopyOnWriteArraySet"
+        )
         FqNames.mutableMap implementedWith fqNameListOf(
-            "java.util.HashMap", "java.util.TreeMap", "java.util.LinkedHashMap",
-            "java.util.concurrent.ConcurrentHashMap", "java.util.concurrent.ConcurrentSkipListMap"
+            "java.util.HashMap",
+            "java.util.TreeMap",
+            "java.util.LinkedHashMap",
+            "java.util.concurrent.ConcurrentHashMap",
+            "java.util.concurrent.ConcurrentSkipListMap"
         )
         FqName("java.util.function.Function") implementedWith fqNameListOf("java.util.function.UnaryOperator")
         FqName("java.util.function.BiFunction") implementedWith fqNameListOf("java.util.function.BinaryOperator")
