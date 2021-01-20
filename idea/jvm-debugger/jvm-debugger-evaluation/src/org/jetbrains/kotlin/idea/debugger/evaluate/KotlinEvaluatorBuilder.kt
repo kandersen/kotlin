@@ -30,12 +30,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.testFramework.runInEdtAndWait
 import com.sun.jdi.*
 import com.sun.jdi.Value
-import org.jetbrains.eval4j.*
-import org.jetbrains.eval4j.Value as Eval4JValue
-import org.jetbrains.eval4j.jdi.JDIEval
-import org.jetbrains.eval4j.jdi.asJdiValue
-import org.jetbrains.eval4j.jdi.asValue
-import org.jetbrains.eval4j.jdi.makeInitialFrame
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory
@@ -162,9 +156,6 @@ class KotlinEvaluator(val codeFragment: KtCodeFragment, private val sourcePositi
         } catch (e: ProcessCanceledException) {
             status.error(EvaluationError.ProcessCancelledException)
             evaluationException(e)
-        } catch (e: Eval4JInterpretingException) {
-            status.error(EvaluationError.InterpretingException)
-            evaluationException(e.cause)
         } catch (e: Exception) {
             val isSpecialException = isSpecialException(e)
             if (isSpecialException) {
@@ -192,23 +183,8 @@ class KotlinEvaluator(val codeFragment: KtCodeFragment, private val sourcePositi
             status.classLoadingFailed()
         }
 
-        val result = if (classLoaderRef != null) {
-            try {
-                status.usedEvaluator(EvaluationStatus.EvaluatorType.Bytecode)
-                return evaluateWithCompilation(context, compiledData, classLoaderRef, status)
-            } catch (e: Throwable) {
-                status.compilingEvaluatorFailed()
-                LOG.warn("Compiling evaluator failed", e)
-
-                status.usedEvaluator(EvaluationStatus.EvaluatorType.Eval4j)
-                evaluateWithEval4J(context, compiledData, classLoaderRef, status)
-            }
-        } else {
-            status.usedEvaluator(EvaluationStatus.EvaluatorType.Eval4j)
-            evaluateWithEval4J(context, compiledData, classLoaderRef, status)
-        }
-
-        return result.toJdiValue(context, status)
+        status.usedEvaluator(EvaluationStatus.EvaluatorType.Bytecode)
+        return evaluateWithCompilation(context, compiledData, classLoaderRef!!, status)
     }
 
     private fun compileCodeFragment(context: ExecutionContext, status: EvaluationStatus): CompiledDataDescriptor {
@@ -324,38 +300,6 @@ class KotlinEvaluator(val codeFragment: KtCodeFragment, private val sourcePositi
         }
     }
 
-    private fun evaluateWithEval4J(
-        context: ExecutionContext,
-        compiledData: CompiledDataDescriptor,
-        classLoader: ClassLoaderReference?,
-        status: EvaluationStatus
-    ): InterpreterResult {
-        val mainClassBytecode = compiledData.mainClass.bytes
-        val mainClassAsmNode = ClassNode().apply { ClassReader(mainClassBytecode).accept(this, 0) }
-        val mainMethod = mainClassAsmNode.methods.first { it.name == GENERATED_FUNCTION_NAME }
-
-        return runEvaluation(context, compiledData, classLoader ?: context.evaluationContext.classLoader, status) { args ->
-            val vm = context.vm.virtualMachine
-            val thread = context.suspendContext.thread?.threadReference?.takeIf { it.isSuspended }
-                ?: error("Can not find a thread to run evaluation on")
-
-            val eval = object : JDIEval(vm, classLoader, thread, context.invokePolicy) {
-                override fun jdiInvokeStaticMethod(type: ClassType, method: Method, args: List<Value?>, invokePolicy: Int): Value? {
-                    return context.invokeMethod(type, method, args)
-                }
-
-                override fun jdiInvokeStaticMethod(type: InterfaceType, method: Method, args: List<Value?>, invokePolicy: Int): Value? {
-                    return context.invokeMethod(type, method, args)
-                }
-
-                override fun jdiInvokeMethod(obj: ObjectReference, method: Method, args: List<Value?>, policy: Int): Value? {
-                    return context.invokeMethod(obj, method, args, ObjectReference.INVOKE_NONVIRTUAL)
-                }
-            }
-            interpreterLoop(mainMethod, makeInitialFrame(mainMethod, args.map { it.asValue() }), eval)
-        }
-    }
-
     private fun <T> runEvaluation(
         context: ExecutionContext,
         compiledData: CompiledDataDescriptor,
@@ -452,38 +396,6 @@ class KotlinEvaluator(val codeFragment: KtCodeFragment, private val sourcePositi
 
         private val DEFAULT_METHOD_MARKERS = listOf(AsmTypes.OBJECT_TYPE, AsmTypes.DEFAULT_CONSTRUCTOR_MARKER)
 
-        private fun InterpreterResult.toJdiValue(context: ExecutionContext, status: EvaluationStatus): Value? {
-            val jdiValue = when (this) {
-                is ValueReturned -> result
-                is ExceptionThrown -> {
-                    when {
-                        this.kind == ExceptionThrown.ExceptionKind.FROM_EVALUATED_CODE -> {
-                            status.error(EvaluationError.ExceptionFromEvaluatedCode)
-                            evaluationException(InvocationException(this.exception.value as ObjectReference))
-                        }
-                        this.kind == ExceptionThrown.ExceptionKind.BROKEN_CODE ->
-                            throw exception.value as Throwable
-                        else -> {
-                            status.error(EvaluationError.Eval4JUnknownException)
-                            evaluationException(exception.toString())
-                        }
-                    }
-                }
-                is AbnormalTermination -> {
-                    status.error(EvaluationError.Eval4JAbnormalTermination)
-                    evaluationException(message)
-                }
-                else -> throw IllegalStateException("Unknown result value produced by eval4j")
-            }
-
-            val sharedVar = if ((jdiValue is AbstractValue<*>)) getValueIfSharedVar(jdiValue, context) else null
-            return sharedVar?.value ?: jdiValue.asJdiValue(context.vm.virtualMachine, jdiValue.asmType)
-        }
-
-        private fun getValueIfSharedVar(value: Eval4JValue, context: ExecutionContext): VariableFinder.Result? {
-            val obj = value.obj(value.asmType) as? ObjectReference ?: return null
-            return VariableFinder.Result(EvaluatorValueConverter(context).unref(obj))
-        }
     }
 }
 
