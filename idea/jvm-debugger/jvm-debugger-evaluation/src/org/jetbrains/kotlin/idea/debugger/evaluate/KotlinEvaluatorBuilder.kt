@@ -192,21 +192,8 @@ class KotlinEvaluator(val codeFragment: KtCodeFragment, private val sourcePositi
             status.classLoadingFailed()
         }
 
-        val result = if (classLoaderRef != null) {
-            try {
-                status.usedEvaluator(EvaluationStatus.EvaluatorType.Bytecode)
-                return evaluateWithCompilation(context, compiledData, classLoaderRef, status)
-            } catch (e: Throwable) {
-                status.compilingEvaluatorFailed()
-                LOG.warn("Compiling evaluator failed", e)
-
-                status.usedEvaluator(EvaluationStatus.EvaluatorType.Eval4j)
-                evaluateWithEval4J(context, compiledData, classLoaderRef, status)
-            }
-        } else {
-            status.usedEvaluator(EvaluationStatus.EvaluatorType.Eval4j)
-            evaluateWithEval4J(context, compiledData, classLoaderRef, status)
-        }
+        status.usedEvaluator(EvaluationStatus.EvaluatorType.Eval4j)
+        val result = evaluateWithEval4J(context, compiledData, classLoaderRef, status)
 
         return result.toJdiValue(context, status)
     }
