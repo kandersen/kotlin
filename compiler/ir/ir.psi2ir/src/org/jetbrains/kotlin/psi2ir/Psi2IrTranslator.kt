@@ -108,6 +108,8 @@ class Psi2IrTranslator(
         linkerExtensions: Collection<IrDeserializer.IrLinkerExtension>,
         codegenInfo: CodeFragmentCodegenInfo
     ): IrModuleFragment {
+        irProviders.count()
+        linkerExtensions.count()
         context.symbolTableInterceptor = object : SymbolTableInterceptor {
             override fun referenceValue(symbolTable: SymbolTable, descriptor: VariableDescriptor): IrValueSymbol {
                 val parameterPosition = codegenInfo.parameters.map { it.targetDescriptor }.indexOf(descriptor)
@@ -127,11 +129,8 @@ class Psi2IrTranslator(
 
         moduleGenerator.generateUnboundSymbolsAsDependencies(irProviders)
 
-        deserializers.forEach { it.postProcess() }
-        context.symbolTable.noUnboundLeft("Unbound symbols not allowed\n")
-
         postprocessingSteps.forEach { it.invoke(irModule) }
-
+//
         moduleGenerator.generateUnboundSymbolsAsDependencies(irProviders)
         deserializers.forEach { it.postProcess() }
 
